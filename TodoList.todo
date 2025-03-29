@@ -1,0 +1,59 @@
+Project :
+    
+    FrontEnd :
+         NavBar :
+             ✔ Bouton acceuil @done(25-03-24 18:58)
+             ✔ Bouton connexion @done(25-03-24 22:27)
+             ✔ Barre de recherche @done(25-03-24 18:58)
+             
+        Footer :
+            ☐ Mentions légales
+            ☐ Conditions générales d'utilisation
+            ☐ Politique de confidentialité
+            ☐ Cookies
+            ☐ Plan du site
+            ☐ Contact
+        
+        Page d'accueil :
+            ✔ Image de fond @done(25-03-24 22:39)
+            ✔ Titre @done(25-03-24 22:39)
+            ☐ Description
+        
+        Page Utilisateur :
+            ☐ Liste des utilisateurs
+            ☐ Filtrer les utilisateurs
+            ☐ Bouton Ajouter un utilisateur
+                ☐ Notification de succès
+                ☐ Notification d'erreur
+            ☐ Bouton Supprimer un utilisateur
+                ☐ Confirmation de suppression
+                ☐ Notification de succès
+                ☐ Notification d'erreur
+            ☐ Bouton Modifier un utilisateur
+                ☐ Notification de succès
+                ☐ Notification d'erreur
+            ☐ Bouton Voir les détails d'un utilisateur
+                ☐ Notification de succès
+                ☐ Notification d'erreur
+
+        Page Ajouter un utilisateur :
+            ☐ Formulaire d'ajout d'un utilisateur
+            ☐ Bouton Ajouter un utilisateur
+            ☐ Bouton Annuler
+
+        Page Modifier un utilisateur :
+            ☐ Formulaire de modification d'un utilisateur
+            ☐ Bouton Modifier un utilisateur
+            ☐ Bouton Annuler
+
+        Page de connexion :
+            ☐ Formulaire de connexion
+            ☐ Bouton de connexion
+        
+        Page d'inscription :
+            ☐ Formulaire d'inscription
+            ☐ Bouton d'inscription
+
+    BackEnd :
+    
+    
