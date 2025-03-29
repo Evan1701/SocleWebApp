@@ -1,55 +1,74 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { fetchUsers, addUser as addUserApi, deleteUser as deleteUserApi } from '../api'; // Importation des fonctions API
+import popUpError from '../elements/popUpError.vue'; // Importation de la pop-up d'erreur
+import popUpSuccess from '../elements/popUpSuccess.vue'; // Importation de la pop-up de succès
 
-// Déclaration des variables réactives pour stocker la liste des utilisateurs et les champs du formulaire
+// Références pour la pop-up
+const popupErrorRef = ref(null);
+const popupSuccessRef = ref(null);
+
+// Référence pour la liste des utilisateurs
 const users = ref([]);
 const name = ref('');
 const email = ref('');
 
-// Fonction pour récupérer la liste des utilisateurs depuis l'API
-const fetchUsers = async () => {
+// Fonction pour récupérer la liste des utilisateurs
+const fetchUsersList = async () => {
     try {
-        const res = await fetch('http://localhost:9000/users'); // Appel API pour récupérer les utilisateurs
-        users.value = await res.json();
+        users.value = await fetchUsers(); // Appel à la fonction dans api.js
     } catch (error) {
-        console.error("Erreur lors de la récupération des utilisateurs :", error); // Gestion des erreurs
+        // Gestion des erreurs si nécessaire
+        popupErrorRef.value.triggerErrorPopup('Erreur lors de la récupération des utilisateurs.'); // Appel de la pop-up d'erreur
+        console.error('Erreur lors de la récupération des utilisateurs:', error);
     }
 };
 
-// Fonction pour ajouter un nouvel utilisateur
+// Fonction pour ajouter un utilisateur
 const addUser = async () => {
     if (!name.value || !email.value) return; // Vérification que les champs ne sont pas vides
-    console.log("Données envoyées :", { name: name.value, email: email.value });
 
     try {
-        await fetch('http://localhost:9000/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name.value, email: email.value }) // Envoi des données au serveur
-        });
+        await addUserApi(name.value, email.value); // Appel à la fonction dans api.js
         name.value = '';
         email.value = '';
-        fetchUsers(); // Rafraîchir la liste après l'ajout
+        // Rafraîchir la liste des utilisateurs après l'ajout
+        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après l'ajout
+        // Appel de la pop-up de succès
+        popupSuccessRef.value.triggerSuccessPopup('Utilisateur ajouté avec succès !'); // Appel de la pop-up de succès
+
     } catch (error) {
-        console.error("Erreur lors de l'ajout de l'utilisateur :", error); // Gestion des erreurs
+        // Gestion des erreurs si nécessaire
+        popupErrorRef.value.triggerErrorPopup('Erreur lors de l\'ajout de l\'utilisateur.'); // Appel de la pop-up d'erreur
+        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
     }
 };
 
-// Appel de la fonction fetchUsers() au montage du composant
-onMounted(fetchUsers);
+// Fonction pour supprimer un utilisateur (renommée pour éviter le conflit)
+const deleteUser = async (userId) => {
+    try {
+      console.log('Suppression de l\'utilisateur avec ID:', userId); // Log pour le débogage
+        // Appel à la fonction de suppression dans api.js
+        await deleteUserApi(userId); // Appel à la fonction dans api.js
+        // Rafraîchir la liste des utilisateurs après la suppression
+        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après la suppression
+        // Appel de la pop-up de succès
+        popupSuccessRef.value.triggerSuccessPopup('Utilisateur supprimé avec succès !'); // Appel de la pop-up de succès
+
+    } catch (error) {
+        // Gestion des erreurs si nécessaire
+        popupErrorRef.value.triggerErrorPopup('Erreur lors de la suppression de l\'utilisateur.'); // Appel de la pop-up d'erreur
+        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+    }
+};
+
+// Appel de la fonction fetchUsersList() au montage du composant
+onMounted(fetchUsersList);
 </script>
 
 <template>
   <div class="container">
     <h1>Liste des utilisateurs</h1>
-    
-    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
-    <div class="user-grid">
-      <div v-for="user in users" :key="user.id" class="user-card">
-        <img :src="user.avatar || 'https://via.placeholder.com/150'" alt="Avatar utilisateur" class="user-image" />
-        <h3 class="user-name">{{ user.name }}</h3>
-      </div>
-    </div>
 
     <h2>Ajouter un utilisateur</h2>
     
@@ -59,6 +78,19 @@ onMounted(fetchUsers);
       <input v-model="email" placeholder="Email" />
       <button @click="addUser">Ajouter</button>
     </div>
+    
+    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
+    <div class="user-grid">
+      <div v-for="user in users" :key="user.id" class="user-card">
+        <button @click="deleteUser(user.id)">Supprimer</button>
+        <img src="../assets/personne.jpg" alt="Avatar utilisateur" class="user-image" />
+        <h3 class="user-name">{{ user.name }}</h3>
+      </div>
+    </div>
+
+    <!-- Pop-ups pour l'erreur et le succès -->
+    <popUpError ref="popupErrorRef" />
+    <popUpSuccess ref="popupSuccessRef" />
   </div>
 </template>
 

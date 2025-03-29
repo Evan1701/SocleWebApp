@@ -23,6 +23,17 @@ app.post('/users', async (req, res) => {
     }
 });
 
+// Supprimer un utilisateur
+app.delete('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await User.destroy({ where: { id } });
+        res.json({ message: 'Utilisateur supprimé' });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 // Lister les utilisateurs
 app.get('/users', async (req, res) => {
     try {
