@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../components/Home.vue';  // Importer le composant de la page d'accueil
 import Users from '../components/Users.vue';  // Importer le composant de la page Users
+import AddUsers from '../components/AddUsers.vue';
 
 const routes = [
   {
@@ -14,6 +15,11 @@ const routes = [
     name: 'Users',
     component: Users,  
   },
+  {
+    path: '/addUsers',
+    name: 'AddUsers',
+    component: AddUsers,  // Importer le composant de la page d'ajout d'utilisateurs
+  }
 ];
 
 const router = createRouter({

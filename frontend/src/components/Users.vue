@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { fetchUsers, addUser as addUserApi, deleteUser as deleteUserApi } from '../api'; // Importation des fonctions API
-import popUpError from '../elements/popUpError.vue'; // Importation de la pop-up d'erreur
-import popUpSuccess from '../elements/popUpSuccess.vue'; // Importation de la pop-up de succès
+import { deleteUser as deleteUserApi } from '../api';
+import popUpError from '../elements/popUpError.vue';
+import popUpSuccess from '../elements/popUpSuccess.vue';
+import { handleError, handleSuccess, fetchUsersList } from '../utils/utils'; 
+import { RouterLink } from 'vue-router';
 
 // Références pour la pop-up
 const popupErrorRef = ref(null);
@@ -10,75 +12,35 @@ const popupSuccessRef = ref(null);
 
 // Référence pour la liste des utilisateurs
 const users = ref([]);
-const name = ref('');
-const email = ref('');
 
-// Fonction pour récupérer la liste des utilisateurs
-const fetchUsersList = async () => {
-    try {
-        users.value = await fetchUsers(); // Appel à la fonction dans api.js
-    } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de la récupération des utilisateurs.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de la récupération des utilisateurs:', error);
-    }
-};
+// Charger la liste des utilisateurs
+const loadUsers = () => fetchUsersList(users, popupErrorRef);
 
-// Fonction pour ajouter un utilisateur
-const addUser = async () => {
-    if (!name.value || !email.value) return; // Vérification que les champs ne sont pas vides
-
-    try {
-        await addUserApi(name.value, email.value); // Appel à la fonction dans api.js
-        name.value = '';
-        email.value = '';
-        // Rafraîchir la liste des utilisateurs après l'ajout
-        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après l'ajout
-        // Appel de la pop-up de succès
-        popupSuccessRef.value.triggerSuccessPopup('Utilisateur ajouté avec succès !'); // Appel de la pop-up de succès
-
-    } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de l\'ajout de l\'utilisateur.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-    }
-};
-
-// Fonction pour supprimer un utilisateur (renommée pour éviter le conflit)
+// Fonction pour supprimer un utilisateur
 const deleteUser = async (userId) => {
     try {
-      console.log('Suppression de l\'utilisateur avec ID:', userId); // Log pour le débogage
-        // Appel à la fonction de suppression dans api.js
-        await deleteUserApi(userId); // Appel à la fonction dans api.js
-        // Rafraîchir la liste des utilisateurs après la suppression
-        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après la suppression
-        // Appel de la pop-up de succès
-        popupSuccessRef.value.triggerSuccessPopup('Utilisateur supprimé avec succès !'); // Appel de la pop-up de succès
-
+        console.log('Suppression de l\'utilisateur avec ID:', userId);
+        await deleteUserApi(userId);
+        await loadUsers(); // Rafraîchir la liste après suppression
+        handleSuccess(popupSuccessRef, 'Utilisateur supprimé avec succès !');
     } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de la suppression de l\'utilisateur.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+        handleError(popupErrorRef, 'Erreur lors de la suppression de l\'utilisateur.', error);
     }
 };
 
-// Appel de la fonction fetchUsersList() au montage du composant
-onMounted(fetchUsersList);
+// Charger les utilisateurs au montage
+onMounted(loadUsers);
 </script>
 
 <template>
   <div class="container">
     <h1>Liste des utilisateurs</h1>
+    
+    <button @click="loadUsers">Rafraîchir la liste</button>
+    <button>
+      <router-link to="/addUsers">Ajouter un utilisateur</router-link>
+    </button>
 
-    <h2>Ajouter un utilisateur</h2>
-    
-    <!-- Formulaire d'ajout d'un utilisateur -->
-    <div class="form-group">
-      <input v-model="name" placeholder="Nom" />
-      <input v-model="email" placeholder="Email" />
-      <button @click="addUser">Ajouter</button>
-    </div>
-    
     <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
     <div class="user-grid">
       <div v-for="user in users" :key="user.id" class="user-card">
@@ -104,9 +66,11 @@ onMounted(fetchUsersList);
 /* Mise en page de la grille des utilisateurs */
 .user-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, minmax(150px, 1fr)); /* Toujours 3 colonnes */
   gap: 20px;
   margin-top: 20px;
+  min-height: 200px; /* Hauteur minimale pour éviter les sauts */
+  align-items: start; /* Évite que les éléments s’étendent de manière inégale */
 }
 
 /* Carte utilisateur */
@@ -133,24 +97,6 @@ onMounted(fetchUsersList);
   color: #333;
 }
 
-/* Style du formulaire d'ajout */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  margin-top: 20px;
-}
-
-/* Style des champs de saisie */
-input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  max-width: 300px;
-}
-
 /* Style du bouton d'ajout */
 button {
   background: #57bd84;
@@ -158,7 +104,13 @@ button {
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
-  cursor: pointer;
+  text-decoration: none;
+  margin: 1em;
+}
+
+button a {
+  color: white;
+  text-decoration: none;
 }
 
 /* Effet au survol du bouton */
