@@ -37,9 +37,9 @@ onMounted(loadUsers);
     <h1>Liste des utilisateurs</h1>
     
     <button @click="loadUsers">Rafraîchir la liste</button>
-    <button>
-      <router-link to="/addUsers">Ajouter un utilisateur</router-link>
-    </button>
+
+    <!-- Lien vers la page d'ajout d'utilisateur -->
+      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
 
     <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
     <div class="user-grid">
