@@ -15,17 +15,52 @@ const popupErrorRef = ref(null);
 const popupSuccessRef = ref(null); 
 const router = useRouter();
 
+// Fonction pour gérer le téléchargement de fichiers
+const file = ref(null)
+const imagePreview = ref(null);
+
+const handleFileUpload = (event) => {
+    file.value = event.target.files[0];
+    console.log('Fichier sélectionné:', file.value);
+
+    // Vérification des formats d'images valides (PNG, JPG, HEIC)
+    const validTypes = ['image/png', 'image/jpeg', 'image/heic']; // Types acceptés
+    if (file.value && !validTypes.includes(file.value.type)) {
+        handleError(popupErrorRef, 'Format d\'image non pris en charge. Veuillez télécharger un fichier PNG, JPG ou HEIC.');
+        file.value = null; // Annule la sélection du fichier
+        imagePreview.value = null;
+        return;
+    }
+
+    // Prévisualisation de l'image
+    if (file.value) {
+        imagePreview.value = URL.createObjectURL(file.value);
+    }
+}
 // Fonction pour ajouter un utilisateur
 const addUser = async () => {
-    if (!name.value || !email.value) {
+    if (!name.value || !email.value || !file.value) {
         handleError(popupErrorRef, 'Veuillez remplir tous les champs.');
         return;
     }
 
+    const formData = new FormData();
+    formData.append('name', name.value);
+    formData.append('email', email.value);
+    formData.append('image', file.value);
+
+    console.log('Données envoyées:', {
+        name: name.value,
+        email: email.value,
+        file: file.value ? file.value.name : 'Aucun fichier'
+    });
+
     try {
-        await addUserApi(name.value, email.value); 
+        await addUserApi(formData); 
         name.value = '';
         email.value = '';
+        file.value = null;
+        imagePreview.value = null;
 
         // Affichage de la pop-up de succès
         handleSuccess(popupSuccessRef, 'Utilisateur ajouté avec succès !');
@@ -44,6 +79,10 @@ const addUser = async () => {
         <div class="form-group">
             <input v-model="name" placeholder="Nom" />
             <input v-model="email" placeholder="Email" />
+            <input type="file" accept="image/*" @change="handleFileUpload" />
+            <div v-if="imagePreview">
+                <img :src="imagePreview" alt="Aperçu" style="max-width: 100px; margin-top: 10px;" />
+            </div>
             <button @click="addUser">Ajouter</button>
         </div>
 

@@ -9,20 +9,21 @@ export const fetchUsers = async () => {
     }
 };
 
-export const addUser = async (name, email) => {
-    try {
-        const response = await fetch('http://localhost:9000/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email })
-        });
+export const addUser = async (formData) => {
+    console.log("FormData envoyé :");
+    for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+    }
 
-        if (!response.ok) {
-            throw new Error('Erreur lors de l\'ajout de l\'utilisateur');
-        }
-    } catch (error) {
-        console.error("Erreur lors de l'ajout de l'utilisateur :", error);
-        throw error;
+    const response = await fetch('http://localhost:9000/users', {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Réponse serveur :", errorData);
+        throw new Error(errorData.error || 'Erreur lors de l\'ajout de l\'utilisateur');
     }
 };
 

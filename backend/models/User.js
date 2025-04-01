@@ -15,6 +15,10 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         unique: true,
         allowNull: false
+    },
+    image: {
+        type: DataTypes.BLOB('long'), // Utilisation du type BLOB pour stocker l'image
+        allowNull: true
     }
 });
 

@@ -13,18 +13,48 @@ const popupSuccessRef = ref(null);
 // Référence pour la liste des utilisateurs
 const users = ref([]);
 
+// Fonction pour convertir les données binaires en base64
+const arrayBufferToBase64 = (buffer) => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer.data);  // Utiliser buffer.data pour accéder aux données
+    const length = bytes.byteLength;
+    for (let i = 0; i < length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);  // Convertir en base64
+};
+
 // Charger la liste des utilisateurs
-const loadUsers = () => fetchUsersList(users, popupErrorRef);
+const loadUsers = async () => {
+    await fetchUsersList(users, popupErrorRef);
+    console.log('Utilisateurs chargés:', users.value);
+
+    users.value.forEach(user => {
+        console.log('Utilisateur:', user);  // Afficher toutes les données de l'utilisateur
+        if (user.image) {
+            if (typeof user.image !== 'string') {
+                console.log('Image avant conversion:', user.image); // Afficher les données binaires avant conversion
+                user.image = 'data:image/png;base64,' + arrayBufferToBase64(user.image);
+                console.log('Image après conversion:', user.image); // Afficher l'image après conversion en base64
+            } else {
+                console.log('Image déjà au format Base64 ou URL:', user.image);
+            }
+        }
+    });
+};
 
 // Fonction pour supprimer un utilisateur
 const deleteUser = async (userId) => {
     try {
         console.log('Suppression de l\'utilisateur avec ID:', userId);
         await deleteUserApi(userId);
-        await loadUsers(); // Rafraîchir la liste après suppression
+
+        // Mettre à jour directement la liste des utilisateurs après suppression
+        users.value = users.value.filter(user => user.id !== userId);
+        
         handleSuccess(popupSuccessRef, 'Utilisateur supprimé avec succès !');
     } catch (error) {
-        handleError(popupErrorRef, 'Erreur lors de la suppression de l\'utilisateur.', error);
+        handleError(popupErrorRef, `Erreur lors de la suppression de l'utilisateur ${userId}.`, error);
     }
 };
 
@@ -45,7 +75,7 @@ onMounted(loadUsers);
     <div class="user-grid">
       <div v-for="user in users" :key="user.id" class="user-card">
         <button @click="deleteUser(user.id)">Supprimer</button>
-        <img src="../assets/personne.jpg" alt="Avatar utilisateur" class="user-image" />
+        <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
         <h3 class="user-name">{{ user.name }}</h3>
       </div>
     </div>
