@@ -9,7 +9,6 @@ Project :
         ☐ Conditions générales d'utilisation
         ☐ Politique de confidentialité
         ☐ Cookies
-        ☐ Plan du site
         ☐ Contact
         
     Page d'accueil :
@@ -34,9 +33,9 @@ Project :
 
 
     Page Ajouter un utilisateur :
-        ☐ Formulaire d'ajout d'un utilisateur
-        ☐ Bouton Ajouter un utilisateur
-        ☐ Bouton Annuler
+        ✔ Formulaire d'ajout d'un utilisateur @done(25-04-02 11:37)
+        ✔ Bouton Ajouter un utilisateur @done(25-04-02 11:37)
+        ✔ Bouton Annuler @done(25-04-02 11:37)
 
     Page Modifier un utilisateur :
         ☐ Formulaire de modification d'un utilisateur

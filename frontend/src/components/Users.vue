@@ -3,12 +3,16 @@ import { ref, onMounted } from 'vue';
 import { deleteUser as deleteUserApi } from '../api';
 import popUpError from '../elements/popUpError.vue';
 import popUpSuccess from '../elements/popUpSuccess.vue';
+import ConfirmationPopup from '../elements/confirmationPopup.vue';
 import { handleError, handleSuccess, fetchUsersList } from '../utils/utils'; 
 import { RouterLink } from 'vue-router';
 
 // Références pour la pop-up
 const popupErrorRef = ref(null);
 const popupSuccessRef = ref(null);
+const confirmationPopupRef = ref(null);
+const confirmMessage = ref('');
+const showConfirmPopup = ref(false);
 
 // Référence pour la liste des utilisateurs
 const users = ref([]);
@@ -43,15 +47,20 @@ const loadUsers = async () => {
     });
 };
 
+// Fonction pour afficher la pop-up de confirmation
+const triggerConfirmPopup = (user) => {
+    confirmationPopupRef.value.triggerConfirmPopup(
+        `Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.name} ?`,
+        () => deleteUser(user.id)
+    );
+};
+
 // Fonction pour supprimer un utilisateur
 const deleteUser = async (userId) => {
     try {
         console.log('Suppression de l\'utilisateur avec ID:', userId);
         await deleteUserApi(userId);
-
-        // Mettre à jour directement la liste des utilisateurs après suppression
         users.value = users.value.filter(user => user.id !== userId);
-        
         handleSuccess(popupSuccessRef, 'Utilisateur supprimé avec succès !');
     } catch (error) {
         handleError(popupErrorRef, `Erreur lors de la suppression de l'utilisateur ${userId}.`, error);
@@ -74,13 +83,14 @@ onMounted(loadUsers);
     <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
     <div class="user-grid">
       <div v-for="user in users" :key="user.id" class="user-card">
-        <button @click="deleteUser(user.id)">Supprimer</button>
+        <button @click="triggerConfirmPopup(user)">Supprimer</button>
         <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
         <h3 class="user-name">{{ user.name }}</h3>
       </div>
     </div>
 
     <!-- Pop-ups pour l'erreur et le succès -->
+    <ConfirmationPopup ref="confirmationPopupRef" />
     <popUpError ref="popupErrorRef" />
     <popUpSuccess ref="popupSuccessRef" />
   </div>

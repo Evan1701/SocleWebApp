@@ -34,7 +34,6 @@
 }</style>
   <style scoped>
 
-
 /* ============================= */
 /* 🎨 STYLISATION DE LA NAVBAR */
 /* ============================= */
@@ -65,7 +64,6 @@
   font-family: var(--font-fam);
   font-size: var(--font-size);
 }
-
 
 /* Style des éléments de la liste */
 .navbar li {
@@ -194,6 +192,5 @@
   outline: none;
   box-shadow: none;
 }
-
 
   </style>
