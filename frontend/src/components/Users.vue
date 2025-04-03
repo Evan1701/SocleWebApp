@@ -4,7 +4,7 @@ import { deleteUser as deleteUserApi } from '../api';
 import popUpError from '../elements/popUpError.vue';
 import popUpSuccess from '../elements/popUpSuccess.vue';
 import ConfirmationPopup from '../elements/confirmationPopup.vue';
-import { handleError, handleSuccess, fetchUsersList } from '../utils/utils'; 
+import { handleError, handleSuccess, fetchUsersList, arrayBufferToBase64 } from '../utils/utils'; 
 import { RouterLink } from 'vue-router';
 
 // Références pour la pop-up
@@ -16,17 +16,6 @@ const showConfirmPopup = ref(false);
 
 // Référence pour la liste des utilisateurs
 const users = ref([]);
-
-// Fonction pour convertir les données binaires en base64
-const arrayBufferToBase64 = (buffer) => {
-    let binary = '';
-    const bytes = new Uint8Array(buffer.data);  // Utiliser buffer.data pour accéder aux données
-    const length = bytes.byteLength;
-    for (let i = 0; i < length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);  // Convertir en base64
-};
 
 // Charger la liste des utilisateurs
 const loadUsers = async () => {
@@ -82,11 +71,14 @@ onMounted(loadUsers);
 
     <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
     <div class="user-grid">
-      <div v-for="user in users" :key="user.id" class="user-card">
-        <button @click="triggerConfirmPopup(user)">Supprimer</button>
+      <router-link v-for="user in users" 
+                   :key="user.id" 
+                   :to="'/user/' + user.id" 
+                   class="user-card">
+        <button @click.prevent.stop="triggerConfirmPopup(user)">Supprimer</button>
         <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
         <h3 class="user-name">{{ user.name }}</h3>
-      </div>
+      </router-link>
     </div>
 
     <!-- Pop-ups pour l'erreur et le succès -->
@@ -120,6 +112,12 @@ onMounted(loadUsers);
   padding: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Image de l'utilisateur */

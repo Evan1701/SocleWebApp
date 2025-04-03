@@ -23,9 +23,9 @@ Project :
         ✔ Notification de succès @done(25-03-31 11:40)
         ✔ Notification d'erreur @done(25-03-31 11:40)
         ✔ Bouton Supprimer un utilisateur @done(25-03-31 11:40)
-            ☐ Confirmation de suppression
-                ☐ Notification de succès
-                ☐ Notification d'erreur
+            ✔ Confirmation de suppresson @done(25-04-02 14:47)
+                ✔ Notification de succès @done(25-04-02 14:47)
+                ✔ Notification d'erreur @done(25-04-02 14:47)
         ☐ Bouton Modifier un utilisateur
             ☐ Notification de succès
             ☐ Notification d'erreur
