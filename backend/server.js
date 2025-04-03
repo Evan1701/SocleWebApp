@@ -10,6 +10,7 @@ const storage = multer.memoryStorage(); // Utiliser la mémoire pour stocker les
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/heic', 'image/jpg'];
     if (!allowedTypes.includes(file.mimetype)) {
+        console.error('Format de fichier non pris en charge:', file.mimetype);
         return cb(new Error('Format d\'image non pris en charge. Veuillez télécharger un fichier PNG, JPG ou HEIC.'), false);
     }
     cb(null, true); // Autorise le fichier
@@ -34,6 +35,7 @@ app.post('/users', upload.single('image'), async (req, res) => {
         console.log('Fichier reçu:', req.file);
 
         if (!req.body.name || !req.body.email) {
+            console.error('Requête invalide : manque name ou email', req.body);
             return res.status(400).json({ error: 'Le nom et l\'email sont requis.' });
         }
 
@@ -47,10 +49,28 @@ app.post('/users', upload.single('image'), async (req, res) => {
         const newUser = await User.create({ name, email, image });
 
         console.log('Nouvel utilisateur ajouté:', newUser);
-        res.json(newUser);
+        res.status(201).json(newUser); // Renvoie un statut de succès 201 pour la création
     } catch (error) {
         console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        res.status(500).json({ error: 'Erreur serveur lors de l\'ajout de l\'utilisateur.' });
+    }
+});
+
+// Détails d'un utilisateur
+app.get('/usersDetails/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Recherche de l'utilisateur par son ID
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+
+        res.json(user); // Retourne les détails de l'utilisateur
+    } catch (error) {
+        console.error('Erreur lors de la récupération des détails de l\'utilisateur:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la récupération des détails de l\'utilisateur.' });
     }
 });
 
@@ -58,10 +78,18 @@ app.post('/users', upload.single('image'), async (req, res) => {
 app.delete('/users/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Vérifie si l'utilisateur existe
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+
         await User.destroy({ where: { id } });
         res.json({ message: 'Utilisateur supprimé' });
     } catch (error) {
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'utilisateur.' });
     }
 });
 
@@ -71,7 +99,36 @@ app.get('/users', async (req, res) => {
         const users = await User.findAll();
         res.json(users);
     } catch (error) {
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('Erreur lors de la récupération des utilisateurs:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la récupération des utilisateurs.' });
+    }
+});
+
+// Mettre à jour un utilisateur
+app.put('/users/:id', upload.single('image'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email } = req.body;
+
+        // Vérifie si l'utilisateur existe
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+
+        // Met à jour les informations de l'utilisateur
+        user.name = name !== undefined ? name : user.name;
+        user.email = email !== undefined ? email : user.email;
+
+        if (req.file) {
+            user.image = req.file.buffer;  // Met à jour l'image si un nouveau fichier est téléchargé
+        }
+
+        await user.save();
+        res.json(user);
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'utilisateur.' });
     }
 });
 
@@ -83,6 +140,6 @@ app.listen(PORT, async () => {
         await sequelize.sync();
         console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
     } catch (error) {
-        console.error('Erreur de connexion:', error);
+        console.error('Erreur de connexion à la base de données:', error);
     }
 });
