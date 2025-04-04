@@ -44,3 +44,14 @@ export function arrayBufferToBase64 (buffer) {
     }
     return window.btoa(binary);  // Convertir en base64
 };
+
+// Fonction pour convertir une chaîne base64 en tableau d'octets
+export function base64ToArrayBuffer(base64) {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}

@@ -57,32 +57,22 @@ export const deleteUser = async (id) => {
     }
 };
 
+
 // Fonction pour mettre à jour un utilisateur
 export const updateUser = async (id, formData) => {
-    if (!id) {
-        throw new Error("ID utilisateur non défini pour la mise à jour");
-    }
-    
-    console.log("ID utilisateur à mettre à jour :", id);
-    console.log("Données envoyées :", Object.fromEntries(formData));
-
     try {
-        const response = await fetch(`http://localhost:9000/usersDetails/${id}`, {
+        const response = await fetch(`http://localhost:9000/users/${id}`, {
             method: 'PUT',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
+            body: formData
         });
 
         if (!response.ok) {
-            throw new Error('Erreur lors de la mise à jour de l\'utilisateur');
+            const errorData = await response.json();
+            console.error("Réponse serveur :", errorData);
+            throw new Error(errorData.error || 'Erreur lors de la mise à jour de l\'utilisateur');
         }
-
-        return await response.json();
     } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+        console.error("Erreur lors de la mise à jour de l'utilisateur :", error);
         throw error;
     }
 };

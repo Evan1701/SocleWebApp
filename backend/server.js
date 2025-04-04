@@ -117,11 +117,11 @@ app.put('/users/:id', upload.single('image'), async (req, res) => {
         }
 
         // Met à jour les informations de l'utilisateur
-        user.name = name !== undefined ? name : user.name;
-        user.email = email !== undefined ? email : user.email;
+        user.name = name || user.name;
+        user.email = email || user.email;
 
         if (req.file) {
-            user.image = req.file.buffer;  // Met à jour l'image si un nouveau fichier est téléchargé
+            user.image = req.file.buffer;  // Met à jour l'image uniquement si un nouveau fichier est téléchargé
         }
 
         await user.save();

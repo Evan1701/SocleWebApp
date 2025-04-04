@@ -25,11 +25,10 @@
 </template>
 
 <script setup>
-
 import { ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { fetchUserById, updateUser } from '../api';
-import { handleError, handleSuccess, arrayBufferToBase64 } from '../utils/utils.js';
+import { fetchUserById, updateUser } from '../api'; // Assurez-vous d'avoir la méthode updateUser dans votre API
+import { handleError, handleSuccess, arrayBufferToBase64, base64ToArrayBuffer } from '../utils/utils.js';
 import popUpError from '../elements/popUpError.vue';
 
 const popupErrorRef = ref(null);
@@ -60,60 +59,54 @@ const loadUserDetails = async () => {
     }
 };
 
+// Fonction pour gérer le téléchargement de l'image
+const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            user.value.image = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+// Fonction pour sauvegarder les détails de l'utilisateur
+const saveUser = async () => {
+    try {
+        if (!user.value.name || !user.value.email) {
+            throw new Error('Veuillez remplir tous les champs.');
+        }
+
+        const formData = new FormData();
+        formData.append('name', user.value.name);
+        formData.append('email', user.value.email);
+        if (user.value.image) {
+            const base64Image = user.value.image.split(',')[1];
+            const arrayBufferImage = base64ToArrayBuffer(base64Image);
+            formData.append('image', new Blob([arrayBufferImage], { type: 'image/png' }));
+        }
+
+        await updateUser(route.params.id, formData);
+        handleSuccess(popupSuccessRef, 'Utilisateur mis à jour avec succès !');
+        goBack(); // Rediriger vers la liste des utilisateurs après la mise à jour
+    } catch (error) {
+        handleError(popupErrorRef, 'Erreur lors de la mise à jour de l\'utilisateur.', error);
+    }
+};
+// Fonction pour gérer le retour à la liste des utilisateurs
+const goBack = () => {
+    router.push('/users');
+};
+
+
+// Fonction pour charger les détails de l'utilisateur au montage
+
 watchEffect(() => {
     const userId = route.params.id;
     if (userId) {
         loadUserDetails();
     }
 });
-
-// Fonction pour sauvegarder les modifications
-const saveUser = async () => {
-    if (!user.value.name || !user.value.email) {
-        handleError(popupErrorRef, "Veuillez remplir tous les champs.");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", user.value.name);
-    formData.append("email", user.value.email);
-
-    if (user.value.imageFile) {
-        formData.append("image", user.value.imageFile);
-    } else if (user.value.image.startsWith("data:image")) {
-        formData.append("image", user.value.image);
-    }
-
-    console.log("Données envoyées :", {
-        name: user.value.name,
-        email: user.value.email,
-        image: user.value.imageFile ? user.value.imageFile.name : "Aucune image modifiée"
-    });
-
-    try {
-        await updateUser(user.value.id, formData);
-        
-        handleSuccess(popupSuccessRef, "Utilisateur mis à jour avec succès !");
-        router.push(`/users/${user.value.id}`);
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour :", error);
-        handleError(popupErrorRef, "Erreur lors de la mise à jour de l'utilisateur.", error);
-    }
-};
-
-// Fonction pour mettre à jour l'image de profil
-const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        user.value.imageFile = file;
-        const reader = new FileReader();
-        reader.onload = () => {
-            user.value.image = reader.result; // Mettre à jour l'image d'aperçu si nécessaire
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
 </script>
 
 <style scoped>
