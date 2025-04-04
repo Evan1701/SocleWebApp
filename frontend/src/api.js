@@ -23,7 +23,6 @@ export const fetchUserById = async (id) => {
     }
 };
 
-
 export const addUser = async (formData) => {
     console.log("FormData envoyé :");
     for (let pair of formData.entries()) {

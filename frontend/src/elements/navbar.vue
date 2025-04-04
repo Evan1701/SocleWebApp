@@ -8,13 +8,31 @@
       <input id="search" type="search" v-model="searchQuery" placeholder="Search..." required />
       <button type="submit">Go</button>
     </form>
-    <button class="connexion-form">Connexion</button>
+    <router-link to="/connexion"><button class="connexion-form">Connexion</button></router-link>
   </nav>
 </template>
 
-  <script setup>
-  </script>
-  <style>
+<script setup>
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+
+const props = defineProps({
+  users: Array
+});
+
+const searchQuery = ref('');
+const router = useRouter();
+
+const handleSearch = () => {
+  const query = searchQuery.value.toLowerCase();
+  const filteredUsers = props.users.filter(user =>
+    user.name.toLowerCase().includes(query)
+  );
+  console.log('Filtered users:', filteredUsers);
+  // Rediriger vers une page de résultats si besoin
+};
+</script>
+<style>
 /* ============================= */
 /* 🌍 VARIABLES CSS GLOBALES */
 /* ============================= */
@@ -31,8 +49,9 @@
   --bez: cubic-bezier(0, 0, 0.43, 1.49); /* Courbe d'accélération pour les animations */
   --font-size: 1rem; /* Taille de police de base */
   --border-width: 2px; /* Largeur de la bordure */
-}</style>
-  <style scoped>
+}
+</style>
+<style scoped>
 
 /* ============================= */
 /* 🎨 STYLISATION DE LA NAVBAR */
@@ -193,4 +212,4 @@
   box-shadow: none;
 }
 
-  </style>
+</style>

@@ -1,3 +1,35 @@
+<template>
+  <div class="container">
+    <h1>Liste des utilisateurs</h1>
+    
+    <button @click="loadUsers">Rafraîchir la liste</button>
+
+    <!-- Lien vers la page d'ajout d'utilisateur -->
+      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
+
+    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
+    <div class="user-grid">
+      <div v-for="user in users" 
+           :key="user.id" 
+           class="user-card-wrapper">
+        <div class="user-card">
+          <button class="deleteButton" @click.stop="triggerConfirmPopup(user)">
+            <img src="../assets/icons/delete.png" alt="Supprimer" />
+          </button>
+          <router-link :to="'/user/' + user.id">
+            <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
+            <h3 class="user-name">{{ user.name }}</h3>
+          </router-link>
+        </div>
+      </div>
+    </div>
+    <!-- Pop-ups pour l'erreur et le succès -->
+    <ConfirmationPopup ref="confirmationPopupRef" />
+    <popUpError ref="popupErrorRef" />
+    <popUpSuccess ref="popupSuccessRef" />
+  </div>
+</template>
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import { deleteUser as deleteUserApi } from '../api';
@@ -60,34 +92,6 @@ const deleteUser = async (userId) => {
 onMounted(loadUsers);
 </script>
 
-<template>
-  <div class="container">
-    <h1>Liste des utilisateurs</h1>
-    
-    <button @click="loadUsers">Rafraîchir la liste</button>
-
-    <!-- Lien vers la page d'ajout d'utilisateur -->
-      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
-
-    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
-    <div class="user-grid">
-      <router-link v-for="user in users" 
-                   :key="user.id" 
-                   :to="'/user/' + user.id" 
-                   class="user-card">
-        <button @click.prevent.stop="triggerConfirmPopup(user)">Supprimer</button>
-        <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
-        <h3 class="user-name">{{ user.name }}</h3>
-      </router-link>
-    </div>
-
-    <!-- Pop-ups pour l'erreur et le succès -->
-    <ConfirmationPopup ref="confirmationPopupRef" />
-    <popUpError ref="popupErrorRef" />
-    <popUpSuccess ref="popupSuccessRef" />
-  </div>
-</template>
-
 <style scoped>
 .container {
   text-align: center;
@@ -103,6 +107,11 @@ onMounted(loadUsers);
   margin-top: 20px;
   min-height: 200px; /* Hauteur minimale pour éviter les sauts */
   align-items: start; /* Évite que les éléments s’étendent de manière inégale */
+}
+
+/* Wrapper pour la carte utilisateur */
+.user-card-wrapper {
+  position: relative;
 }
 
 /* Carte utilisateur */
@@ -154,5 +163,35 @@ button a {
 /* Effet au survol du bouton */
 button:hover {
   background: #4aa371;
+}
+
+.deleteButton {
+  background: #e95354;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+.user-card:hover .deleteButton {
+  opacity: 1;
+}
+.deleteButton img {
+  width: 16px;
+  height: 16px;
+}
+
+.deleteButton:hover {
+  background: #c44242;
 }
 </style>

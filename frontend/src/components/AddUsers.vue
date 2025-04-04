@@ -1,3 +1,25 @@
+<template>
+    <div class="container">
+        <h1>Ajouter un utilisateur</h1>
+        
+        <!-- Formulaire d'ajout d'un utilisateur -->
+        <div class="form-group">
+            <input v-model="name" placeholder="Nom" />
+            <input v-model="email" placeholder="Email" />
+            <input type="file" accept="image/*" @change="handleFileUpload" />
+            <div v-if="imagePreview">
+                <img :src="imagePreview" alt="Aperçu" style="max-width: 100px; margin-top: 10px;" />
+            </div>
+            <button @click="addUser">Ajouter</button>
+        </div>
+
+        <!-- Pop-ups pour afficher les erreurs et succès -->
+        <popUpError ref="popupErrorRef" />
+        <popUpSuccess ref="popupSuccessRef" />
+    </div>
+</template>
+
+
 <script setup>
 import { ref } from 'vue';
 import { addUser as addUserApi } from '../api'; 
@@ -71,26 +93,7 @@ const addUser = async () => {
 };
 </script>
 
-<template>
-    <div class="container">
-        <h1>Ajouter un utilisateur</h1>
-        
-        <!-- Formulaire d'ajout d'un utilisateur -->
-        <div class="form-group">
-            <input v-model="name" placeholder="Nom" />
-            <input v-model="email" placeholder="Email" />
-            <input type="file" accept="image/*" @change="handleFileUpload" />
-            <div v-if="imagePreview">
-                <img :src="imagePreview" alt="Aperçu" style="max-width: 100px; margin-top: 10px;" />
-            </div>
-            <button @click="addUser">Ajouter</button>
-        </div>
 
-        <!-- Pop-ups pour afficher les erreurs et succès -->
-        <popUpError ref="popupErrorRef" />
-        <popUpSuccess ref="popupSuccessRef" />
-    </div>
-</template>
 
 <style scoped>
 .container {
