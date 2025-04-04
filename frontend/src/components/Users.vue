@@ -1,94 +1,88 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { fetchUsers, addUser as addUserApi, deleteUser as deleteUserApi } from '../api'; // Importation des fonctions API
-import popUpError from '../elements/popUpError.vue'; // Importation de la pop-up d'erreur
-import popUpSuccess from '../elements/popUpSuccess.vue'; // Importation de la pop-up de succès
+import { deleteUser as deleteUserApi } from '../api';
+import popUpError from '../elements/popUpError.vue';
+import popUpSuccess from '../elements/popUpSuccess.vue';
+import ConfirmationPopup from '../elements/confirmationPopup.vue';
+import { handleError, handleSuccess, fetchUsersList, arrayBufferToBase64 } from '../utils/utils'; 
+import { RouterLink } from 'vue-router';
 
 // Références pour la pop-up
 const popupErrorRef = ref(null);
 const popupSuccessRef = ref(null);
+const confirmationPopupRef = ref(null);
+const confirmMessage = ref('');
+const showConfirmPopup = ref(false);
 
 // Référence pour la liste des utilisateurs
 const users = ref([]);
-const name = ref('');
-const email = ref('');
 
-// Fonction pour récupérer la liste des utilisateurs
-const fetchUsersList = async () => {
-    try {
-        users.value = await fetchUsers(); // Appel à la fonction dans api.js
-    } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de la récupération des utilisateurs.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de la récupération des utilisateurs:', error);
-    }
+// Charger la liste des utilisateurs
+const loadUsers = async () => {
+    await fetchUsersList(users, popupErrorRef);
+    console.log('Utilisateurs chargés:', users.value);
+
+    users.value.forEach(user => {
+        console.log('Utilisateur:', user);  // Afficher toutes les données de l'utilisateur
+        if (user.image) {
+            if (typeof user.image !== 'string') {
+                console.log('Image avant conversion:', user.image); // Afficher les données binaires avant conversion
+                user.image = 'data:image/png;base64,' + arrayBufferToBase64(user.image);
+                console.log('Image après conversion:', user.image); // Afficher l'image après conversion en base64
+            } else {
+                console.log('Image déjà au format Base64 ou URL:', user.image);
+            }
+        }
+    });
 };
 
-// Fonction pour ajouter un utilisateur
-const addUser = async () => {
-    if (!name.value || !email.value) return; // Vérification que les champs ne sont pas vides
-
-    try {
-        await addUserApi(name.value, email.value); // Appel à la fonction dans api.js
-        name.value = '';
-        email.value = '';
-        // Rafraîchir la liste des utilisateurs après l'ajout
-        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après l'ajout
-        // Appel de la pop-up de succès
-        popupSuccessRef.value.triggerSuccessPopup('Utilisateur ajouté avec succès !'); // Appel de la pop-up de succès
-
-    } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de l\'ajout de l\'utilisateur.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-    }
+// Fonction pour afficher la pop-up de confirmation
+const triggerConfirmPopup = (user) => {
+    confirmationPopupRef.value.triggerConfirmPopup(
+        `Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.name} ?`,
+        () => deleteUser(user.id)
+    );
 };
 
-// Fonction pour supprimer un utilisateur (renommée pour éviter le conflit)
+// Fonction pour supprimer un utilisateur
 const deleteUser = async (userId) => {
     try {
-      console.log('Suppression de l\'utilisateur avec ID:', userId); // Log pour le débogage
-        // Appel à la fonction de suppression dans api.js
-        await deleteUserApi(userId); // Appel à la fonction dans api.js
-        // Rafraîchir la liste des utilisateurs après la suppression
-        await fetchUsersList(); // Rafraîchir la liste des utilisateurs après la suppression
-        // Appel de la pop-up de succès
-        popupSuccessRef.value.triggerSuccessPopup('Utilisateur supprimé avec succès !'); // Appel de la pop-up de succès
-
+        console.log('Suppression de l\'utilisateur avec ID:', userId);
+        await deleteUserApi(userId);
+        users.value = users.value.filter(user => user.id !== userId);
+        handleSuccess(popupSuccessRef, 'Utilisateur supprimé avec succès !');
     } catch (error) {
-        // Gestion des erreurs si nécessaire
-        popupErrorRef.value.triggerErrorPopup('Erreur lors de la suppression de l\'utilisateur.'); // Appel de la pop-up d'erreur
-        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+        handleError(popupErrorRef, `Erreur lors de la suppression de l'utilisateur ${userId}.`, error);
     }
 };
 
-// Appel de la fonction fetchUsersList() au montage du composant
-onMounted(fetchUsersList);
+// Charger les utilisateurs au montage
+onMounted(loadUsers);
 </script>
 
 <template>
   <div class="container">
     <h1>Liste des utilisateurs</h1>
+    
+    <button @click="loadUsers">Rafraîchir la liste</button>
 
-    <h2>Ajouter un utilisateur</h2>
-    
-    <!-- Formulaire d'ajout d'un utilisateur -->
-    <div class="form-group">
-      <input v-model="name" placeholder="Nom" />
-      <input v-model="email" placeholder="Email" />
-      <button @click="addUser">Ajouter</button>
-    </div>
-    
+    <!-- Lien vers la page d'ajout d'utilisateur -->
+      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
+
     <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
     <div class="user-grid">
-      <div v-for="user in users" :key="user.id" class="user-card">
-        <button @click="deleteUser(user.id)">Supprimer</button>
-        <img src="../assets/personne.jpg" alt="Avatar utilisateur" class="user-image" />
+      <router-link v-for="user in users" 
+                   :key="user.id" 
+                   :to="'/user/' + user.id" 
+                   class="user-card">
+        <button @click.prevent.stop="triggerConfirmPopup(user)">Supprimer</button>
+        <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
         <h3 class="user-name">{{ user.name }}</h3>
-      </div>
+      </router-link>
     </div>
 
     <!-- Pop-ups pour l'erreur et le succès -->
+    <ConfirmationPopup ref="confirmationPopupRef" />
     <popUpError ref="popupErrorRef" />
     <popUpSuccess ref="popupSuccessRef" />
   </div>
@@ -104,9 +98,11 @@ onMounted(fetchUsersList);
 /* Mise en page de la grille des utilisateurs */
 .user-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, minmax(150px, 1fr)); /* Toujours 3 colonnes */
   gap: 20px;
   margin-top: 20px;
+  min-height: 200px; /* Hauteur minimale pour éviter les sauts */
+  align-items: start; /* Évite que les éléments s’étendent de manière inégale */
 }
 
 /* Carte utilisateur */
@@ -116,6 +112,12 @@ onMounted(fetchUsersList);
   padding: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Image de l'utilisateur */
@@ -133,24 +135,6 @@ onMounted(fetchUsersList);
   color: #333;
 }
 
-/* Style du formulaire d'ajout */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  margin-top: 20px;
-}
-
-/* Style des champs de saisie */
-input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  max-width: 300px;
-}
-
 /* Style du bouton d'ajout */
 button {
   background: #57bd84;
@@ -158,7 +142,13 @@ button {
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
-  cursor: pointer;
+  text-decoration: none;
+  margin: 1em;
+}
+
+button a {
+  color: white;
+  text-decoration: none;
 }
 
 /* Effet au survol du bouton */
