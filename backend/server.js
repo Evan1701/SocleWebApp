@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 
 const storage = multer.memoryStorage(); // Utiliser la mémoire pour stocker les fichiers
+const Op = require('sequelize').Op;
 
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/heic', 'image/jpg'];
@@ -129,6 +130,63 @@ app.put('/users/:id', upload.single('image'), async (req, res) => {
     } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'utilisateur.' });
+    }
+});
+
+// Filtrer les utilisateurs par nom
+app.get('/users/search', async (req, res) => {
+    const { name } = req.query;
+    console.log('Recherche d\'utilisateur avec le nom:', name); // Log la valeur de 'name'
+
+    try {
+      if (!name) {
+        return res.status(400).json({ error: 'Le nom est requis.' });
+      }
+
+      // Recherche insensible à la casse (ILIKE)
+      const users = await User.findAll({
+        where: {
+          name: {
+            [Op.iLike]: `%${name}%`
+          }
+        }
+      });
+
+      console.log('Utilisateurs trouvés:', users); // Affiche les utilisateurs trouvés
+
+      if (users.length === 0) {
+        return res.status(404).json({ message: 'Aucun utilisateur trouvé.' });
+      }
+
+      return res.json(users);
+
+    } catch (error) {
+      console.error('Erreur lors de la recherche des utilisateurs:', error);  // Affiche l'erreur complète
+      return res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+});
+
+// Filtrer les utilisateurs par email
+app.get('/users/searchEmail', async (req, res) => {
+    try {
+        const { email } = req.query;
+
+        if (!email || email.trim() === '') {
+            return res.status(400).json({ error: 'L\'email est requis et ne peut pas être vide.' });
+        }
+
+        const users = await User.findAll({
+            where: {
+                email: {
+                    [sequelize.Op.like]: `%${email}%`
+                }
+            }
+        });
+
+        res.json(users);
+    } catch (error) {
+        console.error('Erreur lors de la recherche des utilisateurs:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la recherche des utilisateurs.' });
     }
 });
 

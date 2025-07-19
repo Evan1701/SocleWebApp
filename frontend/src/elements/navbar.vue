@@ -13,23 +13,16 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-const props = defineProps({
-  users: Array
-});
-
-const searchQuery = ref('');
 const router = useRouter();
+const searchQuery = ref(''); // Requête de recherche
 
 const handleSearch = () => {
-  const query = searchQuery.value.toLowerCase();
-  const filteredUsers = props.users.filter(user =>
-    user.name.toLowerCase().includes(query)
-  );
-  console.log('Filtered users:', filteredUsers);
-  // Rediriger vers une page de résultats si besoin
+  if (searchQuery.value.trim()) {
+    router.push({ path: '/users', query: { search: searchQuery.value.trim() } });
+  }
 };
 </script>
 <style>
@@ -211,5 +204,4 @@ const handleSearch = () => {
   outline: none;
   box-shadow: none;
 }
-
 </style>

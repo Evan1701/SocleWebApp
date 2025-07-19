@@ -75,3 +75,17 @@ export const updateUser = async (id, formData) => {
         throw error;
     }
 };
+
+export const searchUsers = async (searchTerm) => {
+    try {
+        const res = await fetch(`http://localhost:9000/users/search?name=${searchTerm}`);
+        console.log("Réponse de la recherche :", res);
+        if (!res.ok) {
+            throw new Error('Erreur lors de la recherche des utilisateurs 1');
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Erreur lors de la recherche des utilisateurs :", error);
+        throw error;
+    }
+};

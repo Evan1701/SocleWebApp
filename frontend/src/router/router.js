@@ -16,7 +16,8 @@ const routes = [
   {
     path: '/users',
     name: 'Users',
-    component: Users,  
+    component: Users,
+    props: route => ({ searchQuery: route.query.name }),  // Passer la requête de recherche en tant que prop
   },
   {
     path: '/addUsers',
