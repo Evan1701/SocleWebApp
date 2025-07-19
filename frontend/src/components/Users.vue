@@ -1,6 +1,39 @@
+<template>
+  <div class="container">
+    <h1>Liste des utilisateurs</h1>
+    
+    <button @click="loadUsers">Rafraîchir la liste</button>
+
+    <!-- Lien vers la page d'ajout d'utilisateur -->
+      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
+
+    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
+    <div class="user-grid">
+      <div v-for="user in users" 
+           :key="user.id" 
+           class="user-card-wrapper">
+        <div class="user-card">
+          <button class="deleteButton" @click.stop="triggerConfirmPopup(user)">
+            <img src="../assets/icons/delete.png" alt="Supprimer" />
+          </button>
+          <router-link :to="'/user/' + user.id">
+            <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
+            <h3 class="user-name">{{ user.name }}</h3>
+          </router-link>
+        </div>
+      </div>
+    </div>
+    <!-- Pop-ups pour l'erreur et le succès -->
+    <ConfirmationPopup ref="confirmationPopupRef" />
+    <popUpError ref="popupErrorRef" />
+    <popUpSuccess ref="popupSuccessRef" />
+  </div>
+</template>
+
 <script setup>
-import { ref, onMounted } from 'vue';
-import { deleteUser as deleteUserApi } from '../api';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { deleteUser as deleteUserApi, searchUsers } from '../api';
 import popUpError from '../elements/popUpError.vue';
 import popUpSuccess from '../elements/popUpSuccess.vue';
 import ConfirmationPopup from '../elements/confirmationPopup.vue';
@@ -56,37 +89,67 @@ const deleteUser = async (userId) => {
     }
 };
 
+// Fonction pour chercher un utilisateur
+const searchUser = async (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+        await loadUsers();
+        return;
+    }
+
+    try {
+        console.log('Recherche d\'utilisateur avec le terme:', searchTerm); // Log du terme de recherche
+        users.value = await searchUsers(searchTerm);
+
+        // Assure-toi de convertir les images en base64 comme dans loadUsers
+        users.value.forEach(user => {
+            console.log('Utilisateur:', user);
+            if (user.image) {
+                if (typeof user.image !== 'string') {
+                    console.log('Image avant conversion:', user.image); // Afficher les données binaires avant conversion
+                    user.image = 'data:image/png;base64,' + arrayBufferToBase64(user.image);
+                    console.log('Image après conversion:', user.image); // Afficher l'image après conversion en base64
+                } else {
+                    console.log('Image déjà au format Base64 ou URL:', user.image);
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de la recherche des utilisateurs:', error); // Log de l'erreur détaillée
+        handleError(popupErrorRef, 'Erreur lors de la recherche des utilisateurs.', error);
+    }
+};
+
+// Fonction pour gérer la recherche d'utilisateur
+const searchInput = ref('');
+const route = useRoute();
+
+onMounted(() => {
+    const initialSearch = route.query.search || '';
+    if (initialSearch) {
+        searchInput.value = initialSearch;
+        searchUser(initialSearch);
+    } else {
+        loadUsers();
+    }
+});
+
+const handleSearch = () => {
+    searchUser(searchInput.value);
+};
+
+// Ajouter un watcher pour détecter les changements de la query dans l'URL
+watch(() => route.query.search, (newSearch) => {
+    if (newSearch !== undefined) {
+        searchInput.value = newSearch;
+        searchUser(newSearch);
+    } else {
+        loadUsers();
+    }
+});
+
 // Charger les utilisateurs au montage
-onMounted(loadUsers);
+// onMounted(loadUsers);
 </script>
-
-<template>
-  <div class="container">
-    <h1>Liste des utilisateurs</h1>
-    
-    <button @click="loadUsers">Rafraîchir la liste</button>
-
-    <!-- Lien vers la page d'ajout d'utilisateur -->
-      <router-link to="/addUsers"><button>Ajouter un utilisateur</button></router-link>
-
-    <!-- Grille pour afficher les utilisateurs sous forme de cartes -->
-    <div class="user-grid">
-      <router-link v-for="user in users" 
-                   :key="user.id" 
-                   :to="'/user/' + user.id" 
-                   class="user-card">
-        <button @click.prevent.stop="triggerConfirmPopup(user)">Supprimer</button>
-        <img v-if="user.image" :src="user.image" alt="Avatar utilisateur" class="user-image" />
-        <h3 class="user-name">{{ user.name }}</h3>
-      </router-link>
-    </div>
-
-    <!-- Pop-ups pour l'erreur et le succès -->
-    <ConfirmationPopup ref="confirmationPopupRef" />
-    <popUpError ref="popupErrorRef" />
-    <popUpSuccess ref="popupSuccessRef" />
-  </div>
-</template>
 
 <style scoped>
 .container {
@@ -103,6 +166,11 @@ onMounted(loadUsers);
   margin-top: 20px;
   min-height: 200px; /* Hauteur minimale pour éviter les sauts */
   align-items: start; /* Évite que les éléments s’étendent de manière inégale */
+}
+
+/* Wrapper pour la carte utilisateur */
+.user-card-wrapper {
+  position: relative;
 }
 
 /* Carte utilisateur */
@@ -154,5 +222,35 @@ button a {
 /* Effet au survol du bouton */
 button:hover {
   background: #4aa371;
+}
+
+.deleteButton {
+  background: #e95354;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+.user-card:hover .deleteButton {
+  opacity: 1;
+}
+.deleteButton img {
+  width: 16px;
+  height: 16px;
+}
+
+.deleteButton:hover {
+  background: #c44242;
 }
 </style>
