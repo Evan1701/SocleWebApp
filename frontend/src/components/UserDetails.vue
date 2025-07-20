@@ -21,6 +21,7 @@
             <router-link to="/users"><button class="back-button">Retour</button></router-link>
         </div>
         <popUpError ref="popupErrorRef" />
+        <popUpSuccess ref="popupSuccessRef" />
     </div>
 </template>
 
@@ -30,6 +31,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { fetchUserById, updateUser } from '../api'; // Assurez-vous d'avoir la méthode updateUser dans votre API
 import { handleError, handleSuccess, arrayBufferToBase64, base64ToArrayBuffer } from '../utils/utils.js';
 import popUpError from '../elements/popUpError.vue';
+import popUpSuccess from '../elements/popUpSuccess.vue';
 
 const popupErrorRef = ref(null);
 const popupSuccessRef = ref(null);
@@ -85,10 +87,10 @@ const saveUser = async () => {
             const arrayBufferImage = base64ToArrayBuffer(base64Image);
             formData.append('image', new Blob([arrayBufferImage], { type: 'image/png' }));
         }
-
-        await updateUser(route.params.id, formData);
         handleSuccess(popupSuccessRef, 'Utilisateur mis à jour avec succès !');
-        goBack(); // Rediriger vers la liste des utilisateurs après la mise à jour
+        await updateUser(route.params.id, formData);
+        goBack();
+        
     } catch (error) {
         handleError(popupErrorRef, 'Erreur lors de la mise à jour de l\'utilisateur.', error);
     }

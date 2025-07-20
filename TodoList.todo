@@ -26,10 +26,10 @@ Project :
             ✔ Confirmation de suppresson @done(25-04-02 14:47)
                 ✔ Notification de succès @done(25-04-02 14:47)
                 ✔ Notification d'erreur @done(25-04-02 14:47)
-        ☐ Bouton Modifier un utilisateur
+        ✔ Bouton Modifier un utilisateur @done(25-07-19 17:43)
             ☐ Notification de succès
             ☐ Notification d'erreur
-        ☐ Bouton Voir les détails d'un utilisateur
+        ✔ Bouton Voir les détails d'un utilisateur @done(25-07-19 17:43)
 
 
     Page Ajouter un utilisateur :
