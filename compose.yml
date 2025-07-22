@@ -1,15 +1,23 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+    container_name: soclewebapp_frontend
+    image: soclewebapp_frontend:latest
+    env_file:
+      - .env
     ports:
       - "8080:80"
     depends_on:
       - backend
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
     ports:
-      - "9000:9000"
+      - "${VITE_BACKEND_PORT}:${VITE_BACKEND_PORT}"
+    container_name: soclewebapp_backend
+    image: soclewebapp_backend:latest
     env_file:
       - .env
     depends_on:
@@ -19,6 +27,7 @@ services:
   postgres:
     image: postgres:15
     restart: always
+    container_name: soclewebapp_postgres
     env_file:
       - .env
     volumes:

@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
@@ -97,7 +99,7 @@ app.delete('/users/:id', async (req, res) => {
 // Lister les utilisateurs
 app.get('/users', async (req, res) => {
     try {
-        const users = await User.findAll();
+        const users = await User.findAll()
         res.json(users);
     } catch (error) {
         console.error('Erreur lors de la récupération des utilisateurs:', error);
@@ -191,12 +193,14 @@ app.get('/users/searchEmail', async (req, res) => {
 });
 
 // Lancer le serveur
-const PORT = 9000;
-app.listen(PORT, async () => {
+const BACKEND_PORT = Number(process.env.VITE_BACKEND_PORT);
+const BACKEND_URL = process.env.VITE_BACKEND_URL;
+console.log(`Démarrage du serveur sur ${BACKEND_URL}:${BACKEND_PORT}`);
+app.listen(BACKEND_PORT, async () => {
     try {
         await sequelize.authenticate();
         await sequelize.sync();
-        console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+        console.log(`🚀 Serveur démarré sur ${BACKEND_URL}:${BACKEND_PORT}`);
     } catch (error) {
         console.error('Erreur de connexion à la base de données:', error);
     }
