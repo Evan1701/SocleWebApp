@@ -1,4 +1,24 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: soclewebapp_keycloak
+    command: start-dev --import-realm --http-enabled=true --hostname=${KC_URL} --http-port=${KC_PORT} --db=${KC_DB} --db-url=${KC_DB_URL} --db-username=${KC_USER} --db-password=${KC_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "${KC_PORT}:${KC_PORT}"
+    environment:
+      - KEYCLOAK_ADMIN=${KC_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_PASSWORD}
+      - KC_DB=${KC_DB}
+      - KC_DB_URL=${KC_DB_URL}
+      - KC_DB_USERNAME=${KC_USER}
+      - KC_DB_PASSWORD=${KC_PASSWORD}
+    volumes:
+      - ./keycloak/realm-import:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+
   frontend:
     build:
       context: ./frontend
@@ -10,7 +30,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8080:80"
+      - "${VITE_FRONTEND_PORT}:80"
     depends_on:
       - backend
 
@@ -34,6 +54,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./db_data:/var/lib/postgresql/data
+      - ./db/init/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     ports:
-      - "5433:5432"
+      - "${DB_REDIRECT_PORT}:${DB_PORT}"
